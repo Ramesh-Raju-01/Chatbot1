@@ -1,18 +1,18 @@
 from flask import Flask, request, jsonify
-from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForCasualLM
 
 app = Flask(__name__)
 
 # Load BlenderBot model
-model_name = "facebook/blenderbot-400M-distill"
-tokenizer = BlenderbotTokenizer.from_pretrained(model_name)
-model = BlenderbotForConditionalGeneration.from_pretrained(model_name)
+model_name = "distilgpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCasualLM.from_pretrained(model_name)
 
 @app.route("/chat", methods=["POST"])
 def chat():
     user_input = request.json.get("message")
-    inputs = tokenizer([user_input], return_tensors="pt")
-    reply_ids = model.generate(**inputs)
+    inputs = tokenizer.encode(user_input, return_tensors="pt")
+    reply_ids = model.generate(inputs,max_length=50, do_sample=True)
     reply = tokenizer.decode(reply_ids[0], skip_special_tokens=True)
     return jsonify({"reply": reply})
 
